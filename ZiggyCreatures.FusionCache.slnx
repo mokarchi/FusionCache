@@ -22,7 +22,10 @@
     <Project Path="src/ZiggyCreatures.FusionCache/ZiggyCreatures.FusionCache.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/AdvancedSelfTuningDemo/AdvancedSelfTuningDemo..csproj" Id="a666b251-2e27-4d59-8fc8-5e50fb53288f" />
     <Project Path="tests/AOTTester/AOTTester.csproj" />
+    <Project Path="tests/MachineLearningDemo/MachineLearningDemo.csproj" Id="078b8172-df30-463e-aaca-a785b0370367" />
+    <Project Path="tests/SelfTuningDemo/SelfTuningDemo.csproj" Id="138236e8-1c81-4c6a-a909-42b0873c9d70" />
     <Project Path="tests/SerializerPayloadGenerator/SerializerPayloadGenerator.csproj" />
     <Project Path="tests/WebAppTest/WebAppTest.csproj" />
     <Project Path="tests/ZiggyCreatures.FusionCache.Playground/ZiggyCreatures.FusionCache.Playground.csproj" />
