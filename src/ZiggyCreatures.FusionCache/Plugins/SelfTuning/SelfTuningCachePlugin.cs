@@ -125,8 +125,6 @@ public class SelfTuningCachePlugin : ISelfTuningCachePlugin
 
 		var metrics = GetOrCreateMetrics(key);
 		metrics.RecordCost(cost);
-
-		_logger?.LogTrace("Recorded cost for key '{Key}': {Cost}", key, cost.GetTotalCostScore());
 	}
 
 	/// <summary>
@@ -186,16 +184,12 @@ public class SelfTuningCachePlugin : ISelfTuningCachePlugin
 	{
 		var metrics = GetOrCreateMetrics(e.Key);
 		metrics.RecordHit();
-
-		_logger?.LogTrace("Cache hit recorded for key '{Key}' (stale: {IsStale})", e.Key, e.IsStale);
 	}
 
 	private void OnCacheMiss(object? sender, FusionCacheEntryEventArgs e)
 	{
 		var metrics = GetOrCreateMetrics(e.Key);
 		metrics.RecordMiss();
-
-		_logger?.LogTrace("Cache miss recorded for key '{Key}'", e.Key);
 	}
 
 	private void OnFactorySuccess(object? sender, FusionCacheEntryEventArgs e)

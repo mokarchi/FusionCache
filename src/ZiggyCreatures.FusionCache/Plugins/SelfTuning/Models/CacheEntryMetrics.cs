@@ -101,7 +101,6 @@ public sealed class CacheEntryMetrics
 		{
 			_recentCosts.Enqueue(cost);
 
-			// Keep only recent costs (last 100 operations)
 			while (_recentCosts.Count > 100)
 			{
 				_recentCosts.Dequeue();
@@ -131,7 +130,6 @@ public sealed class CacheEntryMetrics
 		LastAccessTime = DateTimeOffset.UtcNow;
 		_recentAccesses.Enqueue(LastAccessTime);
 
-		// Keep only recent accesses (last 24 hours worth)
 		var cutoff = DateTimeOffset.UtcNow.AddHours(-24);
 		while (_recentAccesses.Count > 0 && _recentAccesses.Peek() < cutoff)
 		{

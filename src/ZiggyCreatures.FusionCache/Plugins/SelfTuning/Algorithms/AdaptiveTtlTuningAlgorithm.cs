@@ -55,13 +55,11 @@ public sealed class AdaptiveTtlTuningAlgorithm : ITtlTuningAlgorithm
 	{
 		if (hitRate > targetHitRate)
 		{
-			// Hit rate is good, we can increase TTL
 			var overPerformance = hitRate - targetHitRate;
 			return 1.0 + (overPerformance * (options.TtlIncreaseMultiplier - 1.0));
 		}
 		else
 		{
-			// Hit rate is poor, we should decrease TTL
 			var underPerformance = targetHitRate - hitRate;
 			return 1.0 - (underPerformance * (1.0 - options.TtlDecreaseMultiplier));
 		}
@@ -73,9 +71,6 @@ public sealed class AdaptiveTtlTuningAlgorithm : ITtlTuningAlgorithm
 	private double CalculateFrequencyAdjustment(CacheEntryMetrics metrics, SelfTuningOptions options)
 	{
 		var accessFrequency = metrics.GetAccessFrequencyPerHour();
-
-		// High frequency access should get longer TTL (more valuable to cache)
-		// Low frequency access should get shorter TTL (less valuable to cache)
 
 		if (accessFrequency > 10) // More than 10 accesses per hour
 		{
@@ -101,14 +96,11 @@ public sealed class AdaptiveTtlTuningAlgorithm : ITtlTuningAlgorithm
 
 		var averageCost = metrics.AverageCost;
 
-		// Higher cost operations should have longer TTL to amortize the cost
-		// Lower cost operations can have shorter TTL since regeneration is cheap
-
-		if (averageCost > 5.0) // High cost operations
+		if (averageCost > 5.0) // High-cost operations
 		{
 			return 1.0 + (options.CostSensitivity * Math.Log(averageCost));
 		}
-		else if (averageCost < 0.1) // Very low cost operations
+		else if (averageCost < 0.1) // Very low-cost operations
 		{
 			return Math.Max(0.5, 1.0 - (options.CostSensitivity * 2));
 		}
