@@ -156,11 +156,17 @@ public class SelfTuningCachePlugin : ISelfTuningCachePlugin
 				// Execute the original factory
 				var result = await originalFactory(ctx, ct);
 
-				// Record operation cost
+				// Record operation success metrics
 				var executionTime = DateTimeOffset.UtcNow - startTime;
 				var memoryAfter = GC.GetTotalMemory(false);
 				var memoryUsed = Math.Max(0, memoryAfter - memoryBefore);
 
+				var metrics = GetOrCreateMetrics(key);
+
+				// Record factory latency
+				metrics.RecordFactoryLatency(executionTime.TotalMilliseconds);
+
+				// Record operation cost
 				var cost = new CacheEntryCost
 				{
 					ComputationTimeMs = executionTime.TotalMilliseconds,
@@ -174,7 +180,13 @@ public class SelfTuningCachePlugin : ISelfTuningCachePlugin
 			}
 			catch (Exception ex)
 			{
-				_logger?.LogWarning(ex, "Factory execution failed for key '{Key}'", key);
+				// Record factory failure
+				var executionTime = DateTimeOffset.UtcNow - startTime;
+				var metrics = GetOrCreateMetrics(key);
+				metrics.RecordFailure();
+				metrics.RecordFactoryLatency(executionTime.TotalMilliseconds);
+
+				_logger?.LogWarning(ex, "Factory execution failed for key '{Key}' after {Duration}ms", key, executionTime.TotalMilliseconds);
 				throw;
 			}
 		};
@@ -204,6 +216,9 @@ public class SelfTuningCachePlugin : ISelfTuningCachePlugin
 
 	private void OnFactoryError(object? sender, FusionCacheEntryEventArgs e)
 	{
+		// Record factory failure in metrics
+		var metrics = GetOrCreateMetrics(e.Key);
+		metrics.RecordFailure();
 	}
 
 	private void OnFactoryTimeout(object? sender, FusionCacheEntryEventArgs e)
@@ -224,7 +239,7 @@ public class SelfTuningCachePlugin : ISelfTuningCachePlugin
 
 			foreach (var kvp in _metrics)
 			{
-				if (kvp.Value.LastAccessTime < cutoff)
+				if (kvp.Value.LastAccessUtc < cutoff)
 				{
 					keysToRemove.Add(kvp.Key);
 				}
@@ -239,7 +254,7 @@ public class SelfTuningCachePlugin : ISelfTuningCachePlugin
 			if (_metrics.Count > _options.MaxTrackedEntries)
 			{
 				var entriesToRemove = _metrics
-					.OrderBy(kvp => kvp.Value.LastAccessTime)
+					.OrderBy(kvp => kvp.Value.LastAccessUtc)
 					.Take(_metrics.Count - _options.MaxTrackedEntries)
 					.Select(kvp => kvp.Key)
 					.ToList();
